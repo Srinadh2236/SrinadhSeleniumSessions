@@ -9,6 +9,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -30,11 +31,11 @@ public class RedbusTicketBooking extends BaseTest {
 	By seatFare = By.cssSelector(".clearfix.bus-item .clearfix.row-one .seat-fare .f-19");
 
 	@DataProvider
-	public Object[][] getSearchKey() {
-		return new Object[][] { { "Nellore", "Bangalore", "31" } };
+	public Object[][] SrcDstDate() {
+		return new Object[][] { { "Nellore", "Bangalore", "7" } };
 	}
 
-	@Test(dataProvider = "getSearchKey")
+	@Test(dataProvider = "SrcDstDate")
 	public void ticketBooking(String From, String To, String BookingDate) throws InterruptedException {
 
 		Actions act = new Actions(driver);
@@ -44,10 +45,10 @@ public class RedbusTicketBooking extends BaseTest {
 
 		doSearch(sourceFrom, SourceSuggestions, From);
 
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
 		doSearch(destionTo, destSuggestions, To);
-
+		driver.findElement(date).click();
 		List<WebElement> dateSelect = driver.findElements(datePick);
 		// System.out.println(dateSelect.size());
 
@@ -61,8 +62,8 @@ public class RedbusTicketBooking extends BaseTest {
 		}
 
 		eUtil.doClick(searchBtn);
-
-		Thread.sleep(10000);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("bus-item")));
+		
 
 		// scroll to bottom load the all price values
 		JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -87,19 +88,22 @@ public class RedbusTicketBooking extends BaseTest {
 		System.out.println("Lowest ticket price :" + eleTextList.get(0).intValue());
 		int lowestPrice = eleTextList.get(0).intValue();
 
-		// scroll to top
-		js.executeScript("window.scrollTo(document.body.scrollHeight,0);");
+		// Locate the bus with the lowest fare and click "View Seats"
+        By lowestFareBus = By.xpath("(//span[text()='" + lowestPrice + "']//parent::div//ancestor::div[@class='clearfix bus-item']//parent::li)[1]");
+        String busId = driver.findElement(lowestFareBus).getAttribute("id");
+        By viewSeatsBtn = By.xpath("//li[@id='" + busId + "']//div[@class='button view-seats fr']");
 
-		// act.moveToElement(getElement(By.xpath("//span[text()='"+lowestPrice+"' and
-		// @class='f-19 f-bold']"))).perform();
-		// driver.findElement(By.xpath("//span[text()='350' and @class='f-19
-		// f-bold']"));
-		// act.moveToElement(getElement(By.xpath("//span[text()='350' and @class='f-19
-		// f-bold']"))).click().perform();
+        // Scroll to the lowest fare bus and click "View Seats"
+        WebElement lowestFareElement = driver.findElement(lowestFareBus);
+        js.executeScript("arguments[0].scrollIntoView(true);", lowestFareElement);
+        eUtil.getElement(viewSeatsBtn).click();
 
-		// manually taken by using id
-		By viewSeats = By.xpath("//li[@id='32394344']//div[@class='button view-seats fr']");
-		eUtil.getElement(viewSeats).click();
+        // Print the bus ID and lowest price
+        System.out.println("Bus ID: " + busId);
+        System.out.println("Lowest Price: " + lowestPrice);
+
+        // Close the browser
+       // driver.quit();
 	}
 
 }

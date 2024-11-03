@@ -50,6 +50,7 @@ public class RedbusTicketBooking extends BaseTest {
 		doSearch(destionTo, destSuggestions, To);
 		driver.findElement(date).click();
 		List<WebElement> dateSelect = driver.findElements(datePick);
+		
 		// System.out.println(dateSelect.size());
 
 		for (WebElement e : dateSelect) {
